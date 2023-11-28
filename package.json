@@ -1,0 +1,25 @@
+{
+  "name": "paragon-bot",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "commands:register": "bun run ./scripts/register-commands.ts",
+    "db:generate": "drizzle-kit generate:sqlite",
+    "db:push": "drizzle-kit push:sqlite"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "drizzle-kit": "^0.20.6"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.4.0-pre.2",
+    "discord.js": "^14.14.1",
+    "drizzle-orm": "^0.29.0",
+    "zod": "^3.22.4"
+  }
+}
