@@ -4,22 +4,21 @@ import { createDatabaseModerationAction } from "./+repositories";
 
 export default {
     data: new SlashCommandBuilder()
-        .setName("warn")
+        .setName("kick")
         .addUserOption(
             option => option
                 .setName("member")
-                .setDescription("The member to warn.")
+                .setDescription("The member to kick.")
                 .setRequired(true)
         )
         .addStringOption(
             option => option
                 .setName("reason")
-                .setDescription("The reason for warning this member.")
-                .setRequired(true)
+                .setDescription("The reason for kicking this member.")
         )
-        .setDescription("Warn a member."),
+        .setDescription("Kick a member from the server."),
     run: async (interaction: CommandInteraction) => {
-        await interaction.editReply("Warning...");
+        await interaction.editReply("Kicking...");
         if (!interaction.guild) return;
 
         const moderator = (interaction.member as GuildMember);
@@ -36,44 +35,49 @@ export default {
         };
 
         if (moderator.id === data.memberId) {
-            await interaction.editReply("You cannot warn yourself.");
+            await interaction.editReply("You cannot kick yourself.");
 
             return;
         };
 
-        const member = await interaction.guild.members.fetch(data.memberId);
+        // won't work without this
+        const guild = await interaction.guild.fetch();
+        const member = await guild.members.fetch(data.memberId);
 
         if (member.user.bot) {
-            await interaction.editReply("You cannot warn a bot.");
+            await interaction.editReply("You cannot kick a bot.");
 
             return;
         };
+
+        // or this because of caching reasons
+        await guild.members.fetchMe();
+
+        if (!member.kickable) {
+            await interaction.editReply("You cannot kick this member.");
+
+            return;
+        };
+
+        await member.kick(data.reason);
 
         const moderationAction = await createDatabaseModerationAction({
             memberId: data.memberId,
             userId: member.user.id,
             moderatorId: moderator.id,
-            type: "warn",
+            type: "kick",
             reason: data.reason,
         });
 
-        try {
-            await member.send(`You have been warned (in server: ${interaction.guildId}) for: \`${data.reason}\``);
-        } catch (err) {
-            console.error(err);
-
-            interaction.channel?.send("Failed to DM user.");
-        };
-
         await interaction.editReply({
-            content: "Member has been warned.",
+            content: "Member has been kicked.",
             embeds: [
                 new EmbedBuilder()
                     .setColor("#9842f5")
                     .setThumbnail(member.avatarURL() || member.user.avatarURL())
                     .addFields([
                         {
-                            name: "Member Warned",
+                            name: "Member Kicked",
                             value: `<@${data.memberId}>`,
                             inline: true,
                         },
@@ -93,7 +97,7 @@ export default {
                         },
                         {
                             name: "Type",
-                            value: `\`Warning\``,
+                            value: `\`Kick\``,
                             inline: true,
                         },
                         {
@@ -105,7 +109,7 @@ export default {
                             value: data.reason || "No reason provided.",
                         },
                     ]),
-            ]
+            ],
         });
     },
 } satisfies CommandType;

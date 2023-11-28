@@ -14,7 +14,7 @@ client.on(Events.InteractionCreate, async interaction => {
     await interaction.deferReply();
 
     try {
-        await command.run(interaction);
+        await command.run(interaction, client);
     } catch (err: any) {
         console.error(err);
 

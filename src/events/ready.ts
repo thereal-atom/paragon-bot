@@ -1,3 +1,3 @@
 import { client } from "../client";
 
-client.on("ready", () => console.log("bot is ready"));
+client.on("ready", () => console.log("Bot is ready."));

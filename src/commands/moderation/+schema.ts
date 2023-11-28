@@ -18,6 +18,7 @@ export const moderationActions = sqliteTable(
             ],
         }).notNull(),
         memberId: text("memberId").notNull(),
+        userId: text("userId").notNull(),
         moderatorId: text("moderatorId").notNull(),
         reason: text("reason"),
     },
