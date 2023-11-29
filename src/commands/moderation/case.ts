@@ -1,6 +1,6 @@
 import { type CommandInteraction, SlashCommandBuilder, GuildMember, EmbedBuilder } from "discord.js";
 import type { CommandType } from "../../types";
-import { createDatabaseModerationAction, deleteDatabaseModerationAction, getDatabaseModerationAction } from "./+repositories";
+import { getDatabaseModerationAction } from "./+repositories";
 
 export default {
     data: new SlashCommandBuilder()
@@ -13,17 +13,15 @@ export default {
         )
         .setDescription("View the info of a case."),
     run: async (interaction: CommandInteraction) => {
-        await interaction.editReply("Checking...");
+        await interaction.editReply("Fetching Case...");
         if (!interaction.guild) return;
-
-        const moderator = (interaction.member as GuildMember);
 
         const data = {
             caseNumber: interaction.options.get("case-number")?.value?.toString(),
         };
 
         if (!data.caseNumber) {
-            await interaction.editReply("No member id was provided.");
+            await interaction.editReply("No case number was provided.");
 
             return;
         };

@@ -62,6 +62,7 @@ export default {
         await member.ban({ reason: data.reason });
 
         const moderationAction = await createDatabaseModerationAction({
+            guildId: interaction.guild.id,
             memberId: data.memberId,
             userId: member.user.id,
             moderatorId: moderator.id,

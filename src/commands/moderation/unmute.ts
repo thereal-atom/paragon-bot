@@ -1,41 +1,29 @@
 import { type CommandInteraction, SlashCommandBuilder, GuildMember, EmbedBuilder } from "discord.js";
 import type { CommandType } from "../../types";
-import { createDatabaseModerationAction } from "./+repositories";
+import { createDatabaseModerationAction, getDatabaseGuildConfig } from "./+repositories";
 
 export default {
     data: new SlashCommandBuilder()
-        .setName("kick")
+        .setName("unmute")
         .addUserOption(
             option => option
                 .setName("member")
-                .setDescription("The member to kick.")
+                .setDescription("The member to unmute.")
                 .setRequired(true)
         )
-        .addStringOption(
-            option => option
-                .setName("reason")
-                .setDescription("The reason for kicking this member.")
-        )
-        .setDescription("Kick a member from the server."),
+        .setDescription("Prevent a member from speaking."),
     run: async (interaction: CommandInteraction) => {
-        await interaction.editReply("Kicking...");
+        await interaction.editReply("Muting...");
         if (!interaction.guild) return;
 
         const moderator = (interaction.member as GuildMember);
 
         const data = {
             memberId: interaction.options.get("member")?.value?.toString(),
-            reason: interaction.options.get("reason")?.value?.toString(),
         };
 
         if (!data.memberId) {
-            await interaction.editReply("No member id was provided.");
-
-            return;
-        };
-
-        if (moderator.id === data.memberId) {
-            await interaction.editReply("You cannot kick yourself.");
+            await interaction.editReply("No member was provided.");
 
             return;
         };
@@ -44,8 +32,24 @@ export default {
         const guild = await interaction.guild.fetch();
         const member = await guild.members.fetch(data.memberId);
 
-        if (member.user.bot) {
-            await interaction.editReply("You cannot kick a bot.");
+        const guildConfig = await getDatabaseGuildConfig({ guildId: interaction.guild.id });
+
+        if (!guildConfig.mutedRoleId) {
+            await interaction.editReply("Muted role not set. Use `/set-muted-role` to set the muted role.");
+
+            return;
+        };
+
+        const mutedRole = await interaction.guild.roles.fetch(guildConfig.mutedRoleId);
+
+        if (!mutedRole) {
+            await interaction.editReply("Muted role does not exists. Create a role and use `/set-muted-role` to set the muted role.");
+
+            return;
+        };
+
+        if (!member.roles.cache.has(mutedRole.id)) {
+            await interaction.editReply("Member is not muted.");
 
             return;
         };
@@ -53,32 +57,31 @@ export default {
         // or this because of caching reasons
         await guild.members.fetchMe();
 
-        if (!member.kickable) {
-            await interaction.editReply("You cannot kick this member.");
+        if (!member.moderatable) {
+            await interaction.editReply("You cannot mute this member.");
 
             return;
         };
 
-        await member.kick(data.reason);
+        await member.roles.remove(mutedRole);
 
         const moderationAction = await createDatabaseModerationAction({
             guildId: interaction.guild.id,
             memberId: data.memberId,
             userId: member.user.id,
             moderatorId: moderator.id,
-            type: "kick",
-            reason: data.reason,
+            type: "unmute",
         });
 
         await interaction.editReply({
-            content: "Member has been kicked.",
+            content: "Member has been unmuted.",
             embeds: [
                 new EmbedBuilder()
                     .setColor("#9842f5")
                     .setThumbnail(member.avatarURL() || member.user.avatarURL())
                     .addFields([
                         {
-                            name: "Member Kicked",
+                            name: "Member Unmuted",
                             value: `<@${data.memberId}>`,
                             inline: true,
                         },
@@ -98,16 +101,8 @@ export default {
                         },
                         {
                             name: "Type",
-                            value: `\`Kick\``,
+                            value: `\`Unmute\``,
                             inline: true,
-                        },
-                        {
-                            name: "\u200B",
-                            value: "\u200B",
-                        },
-                        {
-                            name: "Reason",
-                            value: data.reason || "No reason provided.",
                         },
                     ]),
             ],

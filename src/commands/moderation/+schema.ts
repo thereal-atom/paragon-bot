@@ -16,11 +16,40 @@ export const moderationActions = sqliteTable(
                 "kick",
                 "ban",
                 "unban",
+                "channel-lock",
+                "channel-unlock",
             ],
         }).notNull(),
-        memberId: text("memberId").notNull(),
-        userId: text("userId").notNull(),
+        guildId: text("guildId").notNull(),
+        memberId: text("memberId"),
+        userId: text("userId"),
+        channelId: text("channelId"),
         moderatorId: text("moderatorId").notNull(),
         reason: text("reason"),
+    },
+);
+
+export const persistedRoles = sqliteTable(
+    "persistedRoles",
+    {
+        id: defaultId,
+        createdAt: defaultDate("createdAt"),
+        userId: text("userId").notNull(),
+        memberId: text("memberId").notNull(),
+        guildId: text("guildId").notNull(),
+        roleId: text("roleId").notNull(),
+        reason: text("reason"),
+    },
+);
+
+export const guildConfigs = sqliteTable(
+    "guildConfigs",
+    {
+        id: defaultId,
+        createdAt: defaultDate("createdAt"),
+        guildId: text("guildId").notNull(),
+        mutedRoleId: text("mutedRole"),
+        moderatorRoleId: text("moderatorRoleId"),
+        adminRoleId: text("adminRoleId"),
     },
 );

@@ -23,7 +23,7 @@ export default {
         };
 
         if (!data.caseNumber) {
-            await interaction.editReply("No member id was provided.");
+            await interaction.editReply("No case number was provided.");
 
             return;
         };
@@ -47,6 +47,7 @@ export default {
         await deleteDatabaseModerationAction({ id: caseNumber });
 
         const moderationAction = await createDatabaseModerationAction({
+            guildId: interaction.guild.id,
             memberId: existingModerationAction.memberId,
             userId: existingModerationAction.userId,
             moderatorId: moderator.id,

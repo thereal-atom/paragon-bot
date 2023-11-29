@@ -1,54 +1,65 @@
-import { type CommandInteraction, SlashCommandBuilder, GuildMember, EmbedBuilder, Client } from "discord.js";
+import { type CommandInteraction, SlashCommandBuilder, GuildMember, EmbedBuilder, InteractionCollector, PermissionsBitField } from "discord.js";
 import type { CommandType } from "../../types";
 import { createDatabaseModerationAction } from "./+repositories";
 
 export default {
     data: new SlashCommandBuilder()
-        .setName("unban")
-        .addStringOption(
+        .setName("unlock")
+        .addUserOption(
             option => option
-                .setName("user-id")
-                .setDescription("Id of the user to unban.")
-                .setRequired(true)
+                .setName("channel")
+                .setDescription("The channel to unlock.")
         )
-        .setDescription("Unban a member from the server."),
-    run: async (interaction: CommandInteraction, client: Client) => {
-        await interaction.editReply("Unbanning...");
+        .setDescription("Unlock a locked channel."),
+    run: async (interaction: CommandInteraction) => {
+        await interaction.editReply("Unlocking...");
         if (!interaction.guild) return;
 
         const moderator = (interaction.member as GuildMember);
 
         const data = {
-            userId: interaction.options.get("user-id")?.value?.toString(),
+            channelId: interaction.options.get("channelId")?.value?.toString() || interaction.channelId,
         };
+        
+        const channel = await interaction.guild.channels.fetch(data.channelId);
 
-        if (!data.userId) {
-            await interaction.editReply("No user id was provided.");
+        if (!channel) {
+            await interaction.editReply("Channel doesn't exist.");
 
             return;
         };
 
-        const user = await client.users.fetch(data.userId);
-
-        await interaction.guild.members.unban(user);
-
         const moderationAction = await createDatabaseModerationAction({
             guildId: interaction.guild.id,
-            userId: user.id,
+            channelId: data.channelId,
             moderatorId: moderator.id,
-            type: "unban",
+            type: "channel-unlock",
         });
 
+        try {
+            await channel.edit({
+                permissionOverwrites: [
+                    {
+                        id: interaction.guild.id,
+                        allow: [ PermissionsBitField.Flags.SendMessages ],
+                    },
+                ],
+            });
+        } catch (err) {
+            console.error(err);
+
+            interaction.channel?.send("Failed to unlock channel.");
+        };
+
         await interaction.editReply({
-            content: "Member has been banned.",
+            content: "Channel was unlocked.",
             embeds: [
                 new EmbedBuilder()
                     .setColor("#9842f5")
-                    .setThumbnail(user.avatarURL())
                     .addFields([
                         {
-                            name: "Member Unbanned",
-                            value: `<@${user.id}>`,
+                            name: "Channel Unlocked",
+                            value: `<#${data.channelId}>`,
                             inline: true,
                         },
                         {
@@ -67,11 +78,11 @@ export default {
                         },
                         {
                             name: "Type",
-                            value: `\`Unban\``,
+                            value: `\`Channel Unlock\``,
                             inline: true,
                         },
                     ]),
-            ],
+            ]
         });
     },
 } satisfies CommandType;
