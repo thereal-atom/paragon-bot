@@ -31,6 +31,7 @@ export default envSchema.parse({
         token: process.env.DISCORD_BOT_TOKEN,
         id: process.env.DISCORD_BOT_ID,
         invite: process.env.DISCORD_BOT_INVITE,
+        testServerId: process.env.DISCORD_TEST_SERVER_ID,
     },
     database: {
         token: process.env.DATABASE_TOKEN,

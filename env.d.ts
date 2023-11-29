@@ -4,6 +4,7 @@ declare global {
             DISCORD_BOT_ID: string;
             DISCORD_BOT_TOKEN: string;
             DISCORD_BOT_INVITE: string;
+            DISCORD_TEST_SERVER_ID: string;
             DATABASE_URL: string;
             DATABASE_TOKEN: string;
             DATABASE_CONNECTION_TYPE: "remote" | "local-replica";
