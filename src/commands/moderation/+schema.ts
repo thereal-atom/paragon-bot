@@ -10,6 +10,7 @@ export const moderationActions = sqliteTable(
         type: text("type", {
             enum: [
                 "warn",
+                "delwarn",
                 "mute",
                 "unmute",
                 "kick",

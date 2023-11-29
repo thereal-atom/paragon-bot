@@ -1,10 +1,9 @@
 import type { CommandType } from "../types";
-import { REST, Routes } from "discord.js"
+import { Routes } from "discord.js"
+import { rest } from "../client";
 import config from "../config";
 
 export const registerCommands = (commands: CommandType[]) => {
-    const rest = new REST().setToken(config.discordBot.token);
-
     const discordCommands = commands.map(({ data }) => data);
 
     if (config.env === "production") {
