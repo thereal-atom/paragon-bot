@@ -12,9 +12,8 @@ export const registerCommands = (commands: CommandType[]) => {
             .then(console.log)
             .catch(console.error);
     } else {
-        // test server id can be hard coded as it will only be edited in development
         rest
-            .put(Routes.applicationGuildCommands(config.discordBot.id, "967845566505705543"), { body: discordCommands })
+            .put(Routes.applicationGuildCommands(config.discordBot.id, config.discordBot.testServerId), { body: discordCommands })
             .then(console.log)
             .catch(console.error);
     };

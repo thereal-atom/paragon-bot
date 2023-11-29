@@ -11,6 +11,7 @@ const envSchema = z.object({
         invite: z
             .string()
             .url(),
+        testServerId: z.string(),
     }),
     database: z.object({
         token: z.string(),
