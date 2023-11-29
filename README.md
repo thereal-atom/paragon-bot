@@ -4,9 +4,9 @@ discord bot for paragon services
 
 ---
 
-written in: bun, typescript, discord.js
-database: turso + drizzle
-other libraries: zod
+- written in: bun, typescript, discord.js
+- database: turso + drizzle
+- other libraries: zod
 
 ---
 
